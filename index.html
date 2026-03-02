@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Logger • IP Resolver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Whitney', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e2124 0%, #2c2f33 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: #36393f;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+            overflow: hidden;
+            border: 1px solid #202225;
+        }
+
+        /* Header */
+        .header {
+            background: #1e2124;
+            padding: 20px 25px;
+            border-bottom: 1px solid #040405;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            background: #5865f2;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+            box-shadow: 0 4px 10px rgba(88, 101, 242, 0.3);
+        }
+
+        .header-title {
+            flex: 1;
+        }
+
+        .header-title h1 {
+            color: white;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .header-title p {
+            color: #b9bbbe;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            background: #2d7f46;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #3ba55d;
+        }
+
+        .status-badge i {
+            font-size: 10px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: #2f3136;
+            padding: 0 15px;
+            gap: 5px;
+            border-bottom: 1px solid #202225;
+        }
+
+        .tab {
+            padding: 14px 20px;
+            color: #8e9297;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab:hover {
+            color: #dcddde;
+            background: #36393f;
+        }
+
+        .tab.active {
+            color: #ffffff;
+            border-bottom: 2px solid #5865f2;
+            background: #36393f;
+        }
+
+        .tab i {
+            font-size: 16px;
+        }
+
+        /* Content */
+        .content {
+            padding: 25px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* Logger Box */
+        .logger-box {
+            background: #2f3136;
+            border-radius: 12px;
+            border: 1px solid #202225;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .logger-header {
+            background: #202225;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #040405;
+        }
+
+        .logger-header h3 {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logger-header h3 span {
+            background: #5865f2;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 500;
+        }
+
+        .secure-badge {
+            color: #3ba55d;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .input-area {
+            padding: 20px;
+            border-bottom: 1px solid #202225;
+        }
+
+        .input-label {
+            color: #b9bbbe;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: #202225;
+            border: 1px solid #040405;
+            padding: 14px 16px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: 0.15s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #5865f2;
+            box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
+        }
+
+        .input-wrapper input::placeholder {
+            color: #5d5f64;
+        }
+
+        .generate-btn {
+            background: #5865f2;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #4752c4;
+        }
+
+        .generate-btn:hover {
+            background: #4752c4;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(88, 101, 242, 0.3);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .link-display {
+            background: #1e2124;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #040405;
+        }
+
+        .link-display span {
+            color: #00aff4;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: #404249;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn:hover {
+            background: #4f535c;
+        }
+
+        /* Warning Banner */
+        .warning-banner {
+            background: rgba(237, 139, 0, 0.1);
+            border-left: 4px solid #f0b132;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .warning-icon {
+            color: #f0b132;
+            font-size: 22px;
+        }
+
+        .warning-text {
+            flex: 1;
+        }
+
+        .warning-text h4 {
+            color: #f0b132;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .warning-text p {
+            color: #b9bbbe;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .warning-text strong {
+            color: #f0b132;
+        }
+
+        /* Results Table */
+        .results-container {
+            background: #2f3136;
+            border-radius: 12px;
+            border: 1px solid #202225;
+            overflow: hidden;
+        }
+
+        .results-header {
+            background: #202225;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-header h3 {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .results-header .badge {
+            background: #4f545c;
+            color: white;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 30px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .results-table tr {
+            border-bottom: 1px solid #202225;
+        }
+
+        .results-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .results-table td {
+            padding: 15px 20px;
+            color: #dcddde;
+            font-size: 14px;
+        }
+
+        .results-table td:first-child {
+            color: #8e9297;
+            font-weight: 500;
+            width: 140px;
+            background: #2a2c31;
+        }
+
+        .results-table td:last-child {
+            font-family: 'Consolas', monospace;
+            background: #2f3136;
+        }
+
+        .ip-address {
+            color: #00aff4;
+            font-weight: 500;
+        }
+
+        /* History Tab */
+        .history-list {
+            background: #2f3136;
+            border-radius: 12px;
+            border: 1px solid #202225;
+            overflow: hidden;
+        }
+
+        .history-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #202225;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .history-avatar {
+            width: 36px;
+            height: 36px;
+            background: #5865f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .history-details h4 {
+            color: white;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .history-details p {
+            color: #8e9297;
+            font-size: 12px;
+        }
+
+        .history-time {
+            color: #4f545c;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: #4f545c;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 15px 25px;
+            background: #1e2124;
+            border-top: 1px solid #040405;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #8e9297;
+            font-size: 12px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: #8e9297;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: #dcddde;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #3ba55d;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">📊</div>
+            <div class="header-title">
+                <h1>Discord Logger</h1>
+                <p>IP Resolver • Advanced Logging System</p>
+            </div>
+            <div class="status-badge">
+                <i>●</i> SYSTEM ONLINE
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('logger')">
+                <span>🎣</span> Logger
+            </div>
+            <div class="tab" onclick="switchTab('logs')">
+                <span>📋</span> Live Logs
+            </div>
+            <div class="tab" onclick="switchTab('history')">
+                <span>🕒</span> History
+            </div>
+            <div class="tab" onclick="switchTab('settings')">
+                <span>⚙️</span> Settings
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Logger Tab -->
+            <div id="logger-tab" class="tab-pane active">
+                <div class="logger-box">
+                    <div class="logger-header">
+                        <h3>
+                            IP Logger Generator 
+                            <span>BETA</span>
+                        </h3>
+                        <div class="secure-badge">
+                            <span>🔒</span> Encrypted
+                        </div>
+                    </div>
+                    <div class="input-area">
+                        <div class="input-label">DISCORD USER ID / MESSAGE LINK</div>
+                        <div class="input-wrapper">
+                            <input type="text" id="targetInput" placeholder="Paste Discord ID or message link here... (e.g., 123456789012345678)" value="748578943210123456">
+                            <button class="generate-btn" onclick="generateLink()">
+                                <span>⚡</span> Generate
+                            </button>
+                        </div>
+                        
+                        <div class="link-display">
+                            <span id="generatedLink">discord-logger.net/c/8x7F3kP9</span>
+                            <button class="copy-btn" onclick="copyLink()">
+                                <span>📋</span> Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Warning Banner - Modified text as requested -->
+                <div class="warning-banner">
+                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-text">
+                        <h4>Please do not use uncarefully</h4>
+                        <p>This tool is for educational and security testing purposes only. <strong>Unauthorized use may violate Discord's Terms of Service and applicable laws.</strong> By using this tool, you agree to use it responsibly and only on accounts you own or have explicit permission to test.</p>
+                    </div>
+                </div>
+
+                <!-- Sample Results -->
+                <div class="results-container">
+                    <div class="results-header">
+                        <h3>Last Captured</h3>
+                        <div class="badge">LIVE</div>
+                    </div>
+                    <table class="results-table">
+                        <tr>
+                            <td>IP Address</td>
+                            <td class="ip-address">192.168.1.105 <span style="color:#8e9297; font-family: sans-serif; margin-left: 10px;">(United States)</span></td>
+                        </tr>
+                        <tr>
+                            <td>ISP</td>
+                            <td>Comcast Cable</td>
+                        </tr>
+                        <tr>
+                            <td>Location</td>
+                            <td>Chicago, Illinois</td>
+                        </tr>
+                        <tr>
+                            <td>Timezone</td>
+                            <td>America/Chicago (UTC-6)</td>
+                        </tr>
+                        <tr>
+                            <td>Device</td>
+                            <td>Windows 11 / Chrome 121.0</td>
+                        </tr>
+                        <tr>
+                            <td>Discord User</td>
+                            <td>@toxic_kid_69 <span style="color:#5865f2;">(ID: 748578943210123456)</span></td>
+                        </tr>
+                        <tr>
+                            <td>Timestamp</td>
+                            <td>2024-02-27 23:45:12 UTC</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logs-tab" class="tab-pane">
+                <div class="results-container">
+                    <div class="results-header">
+                        <h3>Live Capture Feed</h3>
+                        <div class="badge">REAL-TIME</div>
+                    </div>
+                    <div style="background: #1e2124; padding: 15px; font-family: 'Consolas', monospace; color: #00aff4; font-size: 13px; max-height: 350px; overflow-y: auto;">
+                        <div style="color: #3ba55d;">[23:45:12] ➜ New connection captured: 192.168.1.105 (Chicago, US)</div>
+                        <div style="color: #8e9297;">[23:44:03] ➜ User agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36</div>
+                        <div style="color: #3ba55d;">[23:42:28] ➜ New connection captured: 172.58.12.45 (Dallas, US)</div>
+                        <div style="color: #ed4245;">[23:41:17] ➜ Discord token detected: NDQ4MjM0NTY3ODkwMTIzNDU2.YMj4KA.abc123def456</div>
+                        <div style="color: #3ba55d;">[23:40:05] ➜ New connection captured: 84.12.56.89 (London, UK)</div>
+                        <div style="color: #8e9297;">[23:38:32] ➜ Proxy detected: True (88.12.34.56)</div>
+                        <div style="color: #3ba55d;">[23:36:19] ➜ New connection captured: 201.45.67.89 (São Paulo, BR)</div>
+                        <div style="color: #f0b132;">[23:35:01] ➜ Webhook sent to Discord channel: #alerts</div>
+                        <div style="color: #3ba55d;">[23:33:44] ➜ New connection captured: 103.15.67.23 (Sydney, AU)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-pane">
+                <div class="history-list">
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-avatar">T</div>
+                            <div class="history-details">
+                                <h4>@toxic_kid_69</h4>
+                                <p>192.168.1.105 • Chicago, US</p>
+                            </div>
+                        </div>
+                        <div class="history-time">2 min ago</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-avatar">X</div>
+                            <div class="history-details">
+                                <h4>@xx_gamer_xx</h4>
+                                <p>172.58.12.45 • Dallas, US</p>
+                            </div>
+                        </div>
+                        <div class="history-time">15 min ago</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-avatar">L</div>
+                            <div class="history-details">
+                                <h4>@london_boi</h4>
+                                <p>84.12.56.89 • London, UK</p>
+                            </div>
+                        </div>
+                        <div class="history-time">1 hour ago</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-avatar">S</div>
+                            <div class="history-details">
+                                <h4>@sao_paulo_br</h4>
+                                <p>201.45.67.89 • São Paulo, BR</p>
+                            </div>
+                        </div>
+                        <div class="history-time">3 hours ago</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-pane">
+                <div class="results-container">
+                    <div class="results-header">
+                        <h3>Configuration</h3>
+                    </div>
+                    <table class="results-table">
+                        <tr>
+                            <td>Discord Webhook URL</td>
+                            <td style="color: #00aff4;">https://discord.com/api/webhooks/123456/abc123</td>
+                        </tr>
+                        <tr>
+                            <td>Auto-capture</td>
+                            <td style="color: #3ba55d;">Enabled ✓</td>
+                        </tr>
+                        <tr>
+                            <td>Proxy Detection</td>
+                            <td style="color: #3ba55d;">Enabled ✓</td>
+                        </tr>
+                        <tr>
+                            <td>VPN Block</td>
+                            <td style="color: #ed4245;">Disabled ✗</td>
+                        </tr>
+                        <tr>
+                            <td>Notification Channel</td>
+                            <td>#alerts</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div>
+                <span class="dot"></span>
+                Discord Logger • v2.4.1
+            </div>
+            <div class="footer-links">
+                <a href="#">Terms</a>
+                <a href="#">Privacy</a>
+                <a href="#">API</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            // Show selected tab pane
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Update tab active states
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Find the clicked tab and make it active
+            event.currentTarget.classList.add('active');
+        }
+
+        // Generate link function (simulated)
+        function generateLink() {
+            const target = document.getElementById('targetInput').value;
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('generatedLink').textContent = `discord-logger.net/c/${code}`;
+        }
+
+        // Copy link function
+        function copyLink() {
+            const linkText = document.getElementById('generatedLink').textContent;
+            navigator.clipboard.writeText(linkText).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<span>✅</span> Copied!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+
+        // Generate on page load
+        window.onload = function() {
+            generateLink();
+        };
+    </script>
+</body>
+</html>
